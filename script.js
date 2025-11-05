@@ -69,7 +69,7 @@ ${message}
 
 — Sent from housesol.agency`
     );
-    const mailto = `mailto:hello@housesol.agency?subject=${subject}&body=${body}`;
+    const mailto = `mailto:creators@housesol.co?subject=${subject}&body=${body}`;
     // Success message and open email client
     form.querySelector('.form-success').hidden = false;
     window.location.href = mailto;
