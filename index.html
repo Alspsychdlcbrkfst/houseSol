@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="house sol is a high-end digital marketing agency crafting sustainable growth through strategy, content, and performance." />
   <meta name="theme-color" content="#2F3432" />
-  <link rel="icon" href="circle-half-fill-svgrepo-com.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Elegant, minimal type pairing -->
@@ -119,9 +119,8 @@
         </div>
 
         <div class="case-grid">
-          <!-- Case study cards use pure CSS placeholders; swap background images as needed -->
           <a class="case" href="#" aria-label="Case study: Terra Ceramics">
-            <div class="case-media" style="--img:url('')">
+            <div class="case-media">
               <div class="tag">eCommerce</div>
             </div>
             <div class="case-body">
@@ -198,52 +197,55 @@
           <h2 id="contact-title">Tell us about your goals</h2>
           <p>We’ll reply within 1 business day with next steps. 💡</p>
         </div>
+
+        <!-- UPDATED: Formspree direct submit (no Mail app) -->
         <form class="form" action="https://formspree.io/f/mdkpqgyp" method="POST" novalidate data-ajax>
-  <!-- honeypot (hidden): bots fill this, humans won't -->
-  <input type="text" name="company" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+          <!-- Honeypot field (hidden from humans, visible to bots) -->
+          <input type="text" name="company" tabindex="-1" autocomplete="off"
+                 style="position:absolute;left:-9999px;opacity:0;height:0;width:0" aria-hidden="true">
 
-  <div class="field">
-    <label for="name">Your name</label>
-    <input id="name" name="name" autocomplete="name" required />
-    <small class="error" aria-live="polite"></small>
-  </div>
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" autocomplete="name" required />
+            <small class="error" aria-live="polite"></small>
+          </div>
 
-  <div class="field">
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required />
-    <small class="error" aria-live="polite"></small>
-  </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required />
+            <small class="error" aria-live="polite"></small>
+          </div>
 
-  <div class="field">
-    <label for="budget">Approx. monthly budget</label>
-    <select id="budget" name="budget" required>
-      <option value="" selected disabled>Select a range</option>
-      <option>Under $5k</option>
-      <option>$5k–$10k</option>
-      <option>$10k–$25k</option>
-      <option>$25k+</option>
-    </select>
-    <small class="error" aria-live="polite"></small>
-  </div>
+          <div class="field">
+            <label for="budget">Approx. monthly budget</label>
+            <select id="budget" name="budget" required>
+              <option value="" selected disabled>Select a range</option>
+              <option>Under $5k</option>
+              <option>$5k–$10k</option>
+              <option>$10k–$25k</option>
+              <option>$25k+</option>
+            </select>
+            <small class="error" aria-live="polite"></small>
+          </div>
 
-  <div class="field">
-    <label for="message">What do you need?</label>
-    <textarea id="message" name="message" rows="5" required></textarea>
-    <small class="error" aria-live="polite"></small>
-  </div>
+          <div class="field">
+            <label for="message">What do you need?</label>
+            <textarea id="message" name="message" rows="5" required></textarea>
+            <small class="error" aria-live="polite"></small>
+          </div>
 
-  <div class="field checkbox">
-    <input id="consent" type="checkbox" required />
-    <label for="consent">I agree to the privacy policy</label>
-  </div>
+          <div class="field checkbox">
+            <input id="consent" type="checkbox" required />
+            <label for="consent">I agree to the privacy policy</label>
+          </div>
 
-  <!-- Optional: subject line for the email you’ll receive -->
-  <input type="hidden" name="_subject" value="New inquiry — house sol">
+          <!-- Optional: subject line for the email you’ll receive -->
+          <input type="hidden" name="_subject" value="New inquiry — house sol">
 
-  <button class="btn" type="submit">Send inquiry</button>
-  <p class="form-success" role="status" hidden>Thanks — we got it! We’ll reply within 1 business day.</p>
-  <p class="form-failure" role="alert" hidden>Hmm, something went wrong. Please try again in a moment.</p>
-</form>
+          <button class="btn" type="submit">Send inquiry</button>
+          <p class="form-success" role="status" hidden>Thanks — we got it! We’ll reply within 1 business day.</p>
+          <p class="form-failure" role="alert" hidden>Hmm, something went wrong. Please try again in a moment.</p>
+        </form>
       </div>
     </section>
   </main>
@@ -258,7 +260,7 @@
         <ul class="foot-nav">
           <li><a href="#">Privacy</a></li>
           <li><a href="#">Terms</a></li>
-          <li><a href="mailto:creators@housesol.co">creators@housesol.co</a></li>
+          <li><a href="mailto:hello@housesol.agency">hello@housesol.agency</a></li>
         </ul>
       </nav>
       <div class="foot-meta">© <span id="year"></span> house sol. All rights reserved.</div>
