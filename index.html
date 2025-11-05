@@ -198,39 +198,14 @@
           <h2 id="contact-title">Tell us about your goals</h2>
           <p>We’ll reply within 1 business day with next steps. 💡</p>
         </div>
-        <form class="form" novalidate>
-          <div class="field">
-            <label for="name">Your name</label>
-            <input id="name" name="name" autocomplete="name" required />
-            <small class="error" aria-live="polite"></small>
-          </div>
-          <div class="field">
-            <label for="email">Email</label>
-            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required />
-            <small class="error" aria-live="polite"></small>
-          </div>
-          <div class="field">
-            <label for="budget">Approx. monthly budget</label>
-            <select id="budget" name="budget" required>
-              <option value="" selected disabled>Select a range</option>
-              <option>Under $5k</option>
-              <option>$5k–$10k</option>
-              <option>$10k–$25k</option>
-              <option>$25k+</option>
-            </select>
-            <small class="error" aria-live="polite"></small>
-          </div>
-          <div class="field">
-            <label for="message">What do you need?</label>
-            <textarea id="message" name="message" rows="5" required></textarea>
-            <small class="error" aria-live="polite"></small>
-          </div>
-          <div class="field checkbox">
-            <input id="consent" type="checkbox" required />
-            <label for="consent">I agree to the privacy policy</label>
-          </div>
-          <button class="btn" type="submit">Send inquiry</button>
-          <p class="form-success" role="status" hidden>Thanks—your message is ready to send!</p>
+        <form action="https://formspree.io/f/mdkpqgyp" method="POST">
+          <label>Your name</label>
+          <input name="name" required>
+          <label>Email</label>
+          <input name="email" type="email" required>
+          <label>Message</label>
+          <textarea name="message" required></textarea>
+          <button type="submit">Send</button>
         </form>
       </div>
     </section>
