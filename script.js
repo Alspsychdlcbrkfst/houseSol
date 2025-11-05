@@ -1,8 +1,6 @@
 // Mobile nav toggle
-const header = document.querySelector('.site-header');
 const body = document.body;
 const toggle = document.querySelector('.nav-toggle');
-const nav = document.querySelector('.site-nav');
 
 if (toggle) {
   toggle.addEventListener('click', () => {
@@ -33,22 +31,37 @@ revealEls.forEach(el => io.observe(el));
 // Footer year
 document.getElementById('year').textContent = new Date().getFullYear();
 
-// Form validation + mailto handoff (no backend)
-const form = document.querySelector('.form');
+/* ------------------------------------------------------------------
+   FORM: Direct submit via Formspree (AJAX) — no Mail app
+   - Keep client-side validation
+   - Honeypot field "company" for spam mitigation
+------------------------------------------------------------------- */
+const form = document.querySelector('.form[data-ajax]');
 if (form) {
-  form.addEventListener('submit', (e) => {
+  const btn = form.querySelector('button[type="submit"]');
+  const successEl = form.querySelector('.form-success');
+  const failureEl = form.querySelector('.form-failure');
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const name = form.name.value.trim();
     const email = form.email.value.trim();
     const budget = form.budget.value;
     const message = form.message.value.trim();
     const consent = document.getElementById('consent').checked;
 
-    // clear errors
-    form.querySelectorAll('.error').forEach(s => s.textContent = '');
+    // Honeypot (bots will fill; humans won't)
+    const honeypot = (form.querySelector('input[name="company"]')?.value || '').trim();
+    if (honeypot) return; // silently drop
 
+    // clear errors & notices
+    form.querySelectorAll('.error').forEach(s => (s.textContent = ''));
+    successEl.hidden = true;
+    failureEl.hidden = true;
+
+    // client-side validation
     let ok = true;
-
     if (!name) { setErr('name', 'Please enter your name.'); ok = false; }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('email', 'Enter a valid email.'); ok = false; }
     if (!budget) { setErr('budget', 'Select a budget.'); ok = false; }
@@ -57,23 +70,48 @@ if (form) {
 
     if (!ok) return;
 
-    // Compose email
-    const subject = encodeURIComponent(`New inquiry — house sol`);
-    const body = encodeURIComponent(
-`Name: ${name}
-Email: ${email}
-Budget: ${budget}
+    // disable while sending
+    btn.disabled = true;
+    const originalLabel = btn.textContent;
+    btn.textContent = 'Sending…';
 
-Project:
-${message}
+    try {
+      const endpoint = form.getAttribute('action'); // YOUR_FORMSPREE_ENDPOINT
+      if (!endpoint || !/^https:\/\/formspree\.io\/f\//.test(endpoint)) {
+        throw new Error('Formspree endpoint is missing or invalid.');
+      }
 
-— Sent from housesol.agency`
-    );
-    const mailto = `mailto:creators@housesol.co?subject=${subject}&body=${body}`;
-    // Success message and open email client
-    form.querySelector('.form-success').hidden = false;
-    window.location.href = mailto;
-    form.reset();
+      const payload = {
+        name,
+        email,
+        budget,
+        message,
+        source: 'housesol (GitHub Pages)'
+      };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        successEl.hidden = false;
+        form.reset();
+      } else {
+        // Attempt to parse any error details
+        let details = '';
+        try { const data = await res.json(); details = data?.errors?.[0]?.message || ''; } catch {}
+        failureEl.textContent = details ? `Submission failed: ${details}` : 'Hmm, something went wrong. Please try again in a moment.';
+        failureEl.hidden = false;
+      }
+    } catch (err) {
+      failureEl.textContent = err?.message || 'Network error. Please try again shortly.';
+      failureEl.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
   });
 }
 
