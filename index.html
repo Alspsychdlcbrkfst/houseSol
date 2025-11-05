@@ -17,6 +17,98 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="og.jpg" />
 </head>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('form.form[data-ajax][action^="https://formspree.io/f/"]');
+  if (!form) { console.error('[house-sol] form not found'); return; }
+
+  const endpoint = form.action;
+  const btn = form.querySelector('button[type="submit"]');
+  const ok = form.querySelector('.form-success');
+  const err = form.querySelector('.form-failure');
+
+  // Remove any legacy inline handlers
+  form.removeAttribute('onsubmit');
+
+  function setErr(id, msg){
+    const field = document.getElementById(id);
+    const small = field?.closest('.field')?.querySelector('.error');
+    if (small) small.textContent = msg;
+  }
+
+  function fallbackPost(){
+    console.warn('[house-sol] Falling back to normal POST (AJAX blocked).');
+    form.removeEventListener('submit', onSubmit);
+    form.removeAttribute('data-ajax');
+    form.submit(); // navigates to Formspree thank-you
+  }
+
+  async function onSubmit(e){
+    e.preventDefault();
+    ok.hidden = true; err.hidden = true;
+    form.querySelectorAll('.error').forEach(s => s.textContent = '');
+
+    // Honeypot
+    if ((form.querySelector('input[name="company"]')?.value || '').trim()) return;
+
+    // Basic validation
+    let valid = true;
+    if (!form.name.value.trim()) { setErr('name','Please enter your name.'); valid=false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.value.trim())) { setErr('email','Enter a valid email.'); valid=false; }
+    if (!form.budget.value) { setErr('budget','Select a budget.'); valid=false; }
+    if (!form.message.value.trim() || form.message.value.trim().length < 12) { setErr('message','Tell us a bit more (12+ chars).'); valid=false; }
+    if (!document.getElementById('consent')?.checked) { alert('Please agree to the privacy policy.'); valid=false; }
+    if (!valid) return;
+
+    // Send
+    const prev = btn.textContent; btn.disabled = true; btn.textContent = 'Sending…';
+    try{
+      if (typeof fetch !== 'function') return fallbackPost();
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({
+          name: form.name.value.trim(),
+          email: form.email.value.trim(),
+          budget: form.budget.value,
+          message: form.message.value.trim(),
+          source: 'housesol.co — GitHub Pages'
+        }),
+        mode: 'cors',
+        redirect: 'follow',
+        credentials: 'omit'
+      });
+
+      if (res.ok){
+        ok.hidden = false;
+        form.reset();
+      } else {
+        // If blocked or non-200, try to show details; otherwise fallback
+        try {
+          const data = await res.json();
+          if (data?.errors?.length) {
+            err.textContent = `Submission failed: ${data.errors[0].message}`;
+            err.hidden = false;
+          } else {
+            return fallbackPost();
+          }
+        } catch {
+          return fallbackPost();
+        }
+      }
+    } catch (ex){
+      console.error('[house-sol] AJAX error:', ex);
+      return fallbackPost();
+    } finally {
+      btn.disabled = false; btn.textContent = prev;
+    }
+  }
+
+  form.addEventListener('submit', onSubmit);
+  console.log('[house-sol] wired submit for', endpoint);
+});
+</script>
 <body>
   <!-- Skip to content for a11y -->
   <a class="skip-link" href="#main">Skip to content</a>
