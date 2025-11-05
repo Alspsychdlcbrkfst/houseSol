@@ -1,7 +1,6 @@
 // Mobile nav toggle
 const body = document.body;
 const toggle = document.querySelector('.nav-toggle');
-
 if (toggle) {
   toggle.addEventListener('click', () => {
     const open = body.classList.toggle('nav-open');
@@ -29,38 +28,45 @@ const io = new IntersectionObserver((entries) => {
 revealEls.forEach(el => io.observe(el));
 
 // Footer year
-document.getElementById('year').textContent = new Date().getFullYear();
+const yearEl = document.getElementById('year');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-/* ------------------------------------------------------------------
-   FORM: Direct submit via Formspree (AJAX) — no Mail app
-   - Keep client-side validation
-   - Honeypot field "company" for spam mitigation
-------------------------------------------------------------------- */
+/* ============================================================
+   CONTACT FORM — Formspree (AJAX). NO mailto anywhere.
+   Requires: <form class="form" action="https://formspree.io/f/mdkpqgyp" data-ajax>
+============================================================ */
 const form = document.querySelector('.form[data-ajax]');
 if (form) {
   const btn = form.querySelector('button[type="submit"]');
   const successEl = form.querySelector('.form-success');
   const failureEl = form.querySelector('.form-failure');
 
+  // Ensure there is no legacy handler on submit button or form
+  form.removeAttribute('onsubmit');
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    // Honeypot (spam trap)
+    const hp = (form.querySelector('input[name="company"]')?.value || '').trim();
+    if (hp) return;
+
+    // Basic validation
     const name = form.name.value.trim();
     const email = form.email.value.trim();
     const budget = form.budget.value;
     const message = form.message.value.trim();
-    const consent = document.getElementById('consent').checked;
+    const consent = document.getElementById('consent')?.checked;
 
-    // Honeypot (bots will fill; humans won't)
-    const honeypot = (form.querySelector('input[name="company"]')?.value || '').trim();
-    if (honeypot) return; // silently drop
-
-    // clear errors & notices
+    const setErr = (id, msg) => {
+      const field = document.getElementById(id);
+      const small = field?.closest('.field')?.querySelector('.error');
+      if (small) small.textContent = msg;
+    };
     form.querySelectorAll('.error').forEach(s => (s.textContent = ''));
     successEl.hidden = true;
     failureEl.hidden = true;
 
-    // client-side validation
     let ok = true;
     if (!name) { setErr('name', 'Please enter your name.'); ok = false; }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('email', 'Enter a valid email.'); ok = false; }
@@ -70,53 +76,49 @@ if (form) {
 
     if (!ok) return;
 
-    // disable while sending
+    // Send
     btn.disabled = true;
-    const originalLabel = btn.textContent;
+    const prev = btn.textContent;
     btn.textContent = 'Sending…';
 
     try {
-      const endpoint = form.getAttribute('action'); // YOUR_FORMSPREE_ENDPOINT
-      if (!endpoint || !/^https:\/\/formspree\.io\/f\//.test(endpoint)) {
-        throw new Error('Formspree endpoint is missing or invalid.');
-      }
-
-      const payload = {
-        name,
-        email,
-        budget,
-        message,
-        source: 'housesol (GitHub Pages)'
-      };
+      const endpoint = form.getAttribute('action'); // e.g. https://formspree.io/f/mdkpqgyp
+      if (!/^https:\/\/formspree\.io\/f\//.test(endpoint)) throw new Error('Form endpoint missing/invalid.');
 
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ name, email, budget, message, source: 'house sol — GitHub Pages' })
       });
 
       if (res.ok) {
         successEl.hidden = false;
         form.reset();
       } else {
-        // Attempt to parse any error details
         let details = '';
-        try { const data = await res.json(); details = data?.errors?.[0]?.message || ''; } catch {}
-        failureEl.textContent = details ? `Submission failed: ${details}` : 'Hmm, something went wrong. Please try again in a moment.';
+        try { details = (await res.json())?.errors?.[0]?.message || ''; } catch {}
+        failureEl.textContent = details ? `Submission failed: ${details}` : 'Hmm, something went wrong. Please try again.';
         failureEl.hidden = false;
       }
     } catch (err) {
-      failureEl.textContent = err?.message || 'Network error. Please try again shortly.';
+      failureEl.textContent = err?.message || 'Network error. Please try again.';
       failureEl.hidden = false;
     } finally {
       btn.disabled = false;
-      btn.textContent = originalLabel;
+      btn.textContent = prev;
     }
   });
 }
 
-function setErr(fieldId, msg){
-  const field = document.getElementById(fieldId);
-  const small = field.closest('.field').querySelector('.error');
-  small.textContent = msg;
-}
+/* --------- HARD GUARANTEE: remove any mailto handlers --------- */
+// If some legacy code tries to assign window.location to mailto, stop it.
+(function guardAgainstMailto() {
+  const origAssign = window.location.assign;
+  window.location.assign = function(url) {
+    if (typeof url === 'string' && url.trim().startsWith('mailto:')) {
+      console.warn('Blocked legacy mailto redirect from JS. Update your code.');
+      return; // block
+    }
+    return origAssign.call(window.location, url);
+  };
+})();
