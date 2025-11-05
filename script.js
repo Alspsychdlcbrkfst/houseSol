@@ -1,4 +1,10 @@
-// ---------------- General UI ----------------
+/* ================================================================
+   house sol — main JavaScript
+   Handles: navigation, scroll effects, reveal animations,
+   and Formspree-powered contact form submission.
+================================================================ */
+
+// ---------- Navigation ----------
 const body = document.body;
 const toggle = document.querySelector('.nav-toggle');
 if (toggle) {
@@ -8,6 +14,7 @@ if (toggle) {
   });
 }
 
+// ---------- Header elevation ----------
 let lastY = 0;
 const onScroll = () => {
   const y = window.scrollY || window.pageYOffset;
@@ -18,71 +25,67 @@ const onScroll = () => {
 window.addEventListener('scroll', onScroll);
 onScroll();
 
+// ---------- Section reveal ----------
 const revealEls = Array.from(document.querySelectorAll('.section, .card, .case, .quote, .about-card'));
 revealEls.forEach(el => el.setAttribute('data-reveal', ''));
 const io = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
-}, {threshold: 0.15});
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('revealed');
+  });
+}, { threshold: 0.15 });
 revealEls.forEach(el => io.observe(el));
 
+// ---------- Footer year ----------
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-// --------------- Contact Form (AJAX + fallback) ----------------
+/* ================================================================
+   CONTACT FORM — Formspree (AJAX + fallback)
+   No mailto:, progressive enhancement, success animation
+================================================================ */
 (function wireForm() {
   const form = document.querySelector('form.form[data-ajax]');
-  if (!form) {
-    console.warn('[house-sol] form not found or missing data-ajax');
-    return;
-  }
+  if (!form) return;
 
-  // Sanity check: action must be Formspree
   const endpoint = form.getAttribute('action') || '';
-  const isFormspree = /^https:\/\/formspree\.io\/f\//.test(endpoint);
-  console.log('[house-sol] endpoint:', endpoint);
-  if (!isFormspree) {
-    console.error('[house-sol] Invalid/missing Formspree endpoint.');
+  if (!/^https:\/\/formspree\.io\/f\//.test(endpoint)) {
+    console.error('[house-sol] Invalid Formspree endpoint');
     return;
   }
 
   const btn = form.querySelector('button[type="submit"]');
-  const ok = form.querySelector('.form-success');
-  const err = form.querySelector('.form-failure');
+  const successEl = form.querySelector('.form-success');
+  const failureEl = form.querySelector('.form-failure');
 
-  // Clear legacy inline handler if any
-  form.removeAttribute('onsubmit');
+  form.removeAttribute('onsubmit'); // remove any inline handler
 
-  // Utility for field errors
-  function setErr(id, msg){
+  const setErr = (id, msg) => {
     const field = document.getElementById(id);
     const small = field?.closest('.field')?.querySelector('.error');
     if (small) small.textContent = msg;
-  }
+  };
 
-  // Fallback: submit the form as a normal POST to Formspree (no AJAX)
-  // This will navigate to Formspree's thank-you page.
+  // Fallback to normal POST if AJAX blocked
   function fallbackPost() {
-    console.warn('[house-sol] Using fallback HTML POST (AJAX blocked).');
-    // Temporarily remove our listener to avoid preventDefault loop
+    console.warn('[house-sol] Fallback: normal POST to Formspree');
     form.removeEventListener('submit', onSubmit);
-    // Remove data-ajax so future loads do default POST
     form.removeAttribute('data-ajax');
     form.submit();
   }
 
   async function onSubmit(e) {
     e.preventDefault();
-    console.log('[house-sol] submit fired');
 
     // Honeypot
     const hp = (form.querySelector('input[name="company"]')?.value || '').trim();
-    if (hp) { console.warn('[house-sol] honeypot triggered'); return; }
+    if (hp) return;
 
-    // Reset messages
-    ok.hidden = true; err.hidden = true;
+    // Reset states
+    successEl.hidden = true;
+    failureEl.hidden = true;
     form.querySelectorAll('.error').forEach(s => (s.textContent = ''));
 
-    // Basic validation
+    // Validation
     const name = form.name.value.trim();
     const email = form.email.value.trim();
     const budget = form.budget.value;
@@ -97,52 +100,61 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
     if (!consent) { alert('Please agree to the privacy policy.'); valid = false; }
     if (!valid) return;
 
-    // Disable button and send
-    const original = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Sending…';
+    // Button state → Sending…
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
 
     try {
-      // If fetch is missing/blocked, go to fallback
-      if (typeof fetch !== 'function') {
-        console.warn('[house-sol] fetch not available');
-        return fallbackPost();
-      }
+      if (typeof fetch !== 'function') return fallbackPost();
 
-      // Some privacy extensions block cross-site POST; try AJAX
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ name, email, budget, message, source: 'house sol — GitHub Pages' }),
-        // Keep it simple to avoid preflight issues with strict environments
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name, email, budget, message,
+          source: 'housesol.co — GitHub Pages'
+        }),
         mode: 'cors',
         redirect: 'follow',
         credentials: 'omit'
       });
 
-      console.log('[house-sol] response:', res.status, res.ok);
       if (res.ok) {
-        ok.hidden = false;
+        successEl.hidden = false;
         form.reset();
+
+        // 🎉 Show "Sent ✓" for 2 seconds, then restore
+        btn.textContent = 'Sent ✓';
+        btn.classList.add('btn--ok');
+        setTimeout(() => {
+          btn.textContent = originalLabel;
+          btn.classList.remove('btn--ok');
+          btn.disabled = false;
+        }, 2000);
+        return; // skip finally
       } else {
-        // If blocked by extension / CORS policy, fall back to normal POST
         try {
-          const data = await res.json().catch(() => null);
+          const data = await res.json();
           if (data?.errors?.length) {
-            err.textContent = `Submission failed: ${data.errors[0].message}`;
-            err.hidden = false;
-          } else {
-            // Use fallback when non-200 without useful details
-            return fallbackPost();
+            failureEl.textContent = `Submission failed: ${data.errors[0].message}`;
           }
-        } catch {
-          return fallbackPost();
-        }
+        } catch {}
+        failureEl.hidden = false;
+        btn.textContent = 'Try again';
       }
-    } catch (ex) {
-      console.error('[house-sol] AJAX error, falling back:', ex);
-      return fallbackPost();
+    } catch (err) {
+      console.error('[house-sol] AJAX error:', err);
+      failureEl.hidden = false;
+      btn.textContent = 'Try again';
     } finally {
-      btn.disabled = false; btn.textContent = original;
+      // Only reset if we didn’t succeed
+      if (btn.textContent !== 'Sent ✓') {
+        btn.disabled = false;
+      }
     }
   }
 
