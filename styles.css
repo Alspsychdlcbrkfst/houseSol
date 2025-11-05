@@ -77,6 +77,14 @@ p{margin:0.5rem 0 0}
 .btn--ghost{background:transparent; color:var(--charcoal); border-color:color-mix(in oklab, var(--charcoal) 35%, transparent)}
 .btn--ghost:hover{background:color-mix(in oklab, var(--charcoal) 7%, transparent)}
 
+/* Success style for Sent ✓ state */
+.btn--ok {
+  background-color: #6B705C; /* earthy green tone */
+  border-color: #6B705C;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
 /* Hero */
 .hero{
   position:relative; isolation:isolate;
