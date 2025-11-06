@@ -43,34 +43,25 @@ revealEls.forEach(el => io.observe(el));
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-/* ================================================================
-   HERO IMAGE — Full-screen fade + parallax scroll
-================================================================ */
+// ---- Hero fade on scroll (no parallax / image stays fixed) ----
 const heroEl = document.querySelector('.hero');
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function updateHeroEffects() {
   if (!heroEl || prefersReduced) return;
+  const heroHeight = Math.max(1, heroEl.offsetHeight);
+  const y = Math.min(heroHeight, window.scrollY || window.pageYOffset);
 
-  const rect = heroEl.getBoundingClientRect();
-  const viewportTop = Math.max(0, -rect.top);
-  const heroHeight = Math.max(1, rect.height);
-
-  // fade slightly slower for a smoother blend
-  const progress = Math.min(1, viewportTop / (heroHeight * 0.9));
+  // Fade out over ~90% of hero height for a smooth handoff
+  const progress = Math.min(1, y / (heroHeight * 0.9));
   const opacity = 1 - progress;
 
-  // parallax: gentle upward shift
-  const shift = Math.round(viewportTop * 0.15) + 'px';
-
   heroEl.style.setProperty('--hero-opacity', opacity.toFixed(3));
-  heroEl.style.setProperty('--hero-shift', '-' + shift);
 }
 
-window.addEventListener('scroll', () => {
-  handleScroll();
-  updateHeroEffects();
-}, { passive: true });
+// If you already have a scroll handler, just call updateHeroEffects() inside it.
+// Otherwise:
+window.addEventListener('scroll', updateHeroEffects, { passive: true });
 updateHeroEffects();
 
 /* ================================================================
