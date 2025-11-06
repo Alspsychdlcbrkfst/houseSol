@@ -49,21 +49,21 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
 const heroEl = document.querySelector('.hero');
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-ffunction updateHeroEffects() {
+function updateHeroEffects() {
   if (!heroEl || prefersReduced) return;
 
   const rect = heroEl.getBoundingClientRect();
   const viewportTop = Math.max(0, -rect.top);
   const heroHeight = Math.max(1, rect.height);
 
-  // Fade out over ~85% of hero height for a softer join
-  const progress = Math.min(1, viewportTop / (heroHeight * 0.85));
+  // fade slightly slower for a smoother blend
+  const progress = Math.min(1, viewportTop / (heroHeight * 0.9));
   const opacity = 1 - progress;
 
-  // Slightly gentler parallax
-  const shift = Math.round(viewportTop * 0.18) + 'px';
+  // parallax: gentle upward shift
+  const shift = Math.round(viewportTop * 0.15) + 'px';
 
-  heroEl.style.setProperty('--hero-opacity', opacity.toString());
+  heroEl.style.setProperty('--hero-opacity', opacity.toFixed(3));
   heroEl.style.setProperty('--hero-shift', '-' + shift);
 }
 
