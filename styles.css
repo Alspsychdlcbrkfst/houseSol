@@ -206,23 +206,40 @@ input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage)
 [data-elevate]{transition:box-shadow .2s}
 .is-scrolled [data-elevate]{box-shadow:0 10px 30px rgba(0,0,0,.06)}
 
-/* Full-bleed hero image */
-.hero-img {
+/* ========== FULLSCREEN HERO W/ SCROLL FADE ========== */
+.hero{
+  position: relative;
+  height: 100svh;            /* full screen, safe for mobile UI */
+  min-height: 520px;
+  overflow: clip;            /* keeps edges crisp */
+  --hero-opacity: 1;         /* controlled by JS */
+  --hero-shift: 0px;         /* controlled by JS */
+}
+
+.hero-img{
   position: absolute;
-  top: 0;
+  inset: 0;
   left: 50%;
   width: 100vw;
   height: 100%;
   object-fit: cover;
-  transform: translateX(-50%);
-  z-index: -1; /* keeps content above */
+  transform: translate3d(-50%, var(--hero-shift), 0);
+  opacity: var(--hero-opacity);
+  will-change: transform, opacity;
+  z-index: -1;               /* behind content */
 }
 
-/* Optional subtle overlay for text readability */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.6));
-  z-index: -1;
+/* Optional: darken lower area for text legibility */
+.hero::before{
+  content:"";
+  position:absolute; inset:0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.55));
+  opacity: calc(var(--hero-opacity) * 0.9);
+  z-index:-1;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .hero-img{ transform: translate3d(-50%, 0, 0); opacity: 1; }
+  .hero::before{ opacity: .9; }
 }
