@@ -1,7 +1,11 @@
 /* ================================================================
-   house sol — main JavaScript
-   Handles: navigation, scroll effects, reveal animations,
-   and Formspree-powered contact form submission.
+   house sol — Main JS
+   Features:
+   - Mobile nav toggle
+   - Header elevation on scroll
+   - Reveal animations
+   - Full-screen hero fade + parallax
+   - Contact form via Formspree (AJAX + fallback)
 ================================================================ */
 
 // ---------- Navigation ----------
@@ -16,49 +20,16 @@ if (toggle) {
 
 // ---------- Header elevation ----------
 let lastY = 0;
-const onScroll = () => {
+function handleScroll() {
   const y = window.scrollY || window.pageYOffset;
   if (y > 8 && lastY <= 8) body.classList.add('is-scrolled');
   if (y <= 8 && lastY > 8) body.classList.remove('is-scrolled');
   lastY = y;
-};
-window.addEventListener('scroll', onScroll);
-onScroll();
-
-// ---- Hero fade + subtle parallax on scroll ----
-const heroEl = document.querySelector('.hero');
-const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-function updateHeroEffects() {
-  if (!heroEl || prefersReduced) return;
-
-  const rect = heroEl.getBoundingClientRect();
-  const viewportTop = Math.max(0, -rect.top);          // how much we've scrolled into the hero
-  const heroHeight = Math.max(1, rect.height);         // avoid /0
-
-  // Fade out over ~70% of hero height
-  const progress = Math.min(1, viewportTop / (heroHeight * 0.7));
-  const opacity = 1 - progress;
-
-  // Gentle parallax upward (20% of scroll)
-  const shift = Math.round(viewportTop * 0.2) + 'px';
-
-  heroEl.style.setProperty('--hero-opacity', opacity.toString());
-  heroEl.style.setProperty('--hero-shift', '-' + shift);
 }
+window.addEventListener('scroll', handleScroll);
+handleScroll();
 
-// Hook into your existing scroll handler
-const _prevOnScroll = onScroll;
-const onScrollCombined = () => {
-  _prevOnScroll && _prevOnScroll();
-  updateHeroEffects();
-};
-window.removeEventListener('scroll', onScroll);
-window.addEventListener('scroll', onScrollCombined, { passive: true });
-// Initial paint
-updateHeroEffects();
-
-// ---------- Section reveal ----------
+// ---------- Reveal animations ----------
 const revealEls = Array.from(document.querySelectorAll('.section, .card, .case, .quote, .about-card'));
 revealEls.forEach(el => el.setAttribute('data-reveal', ''));
 const io = new IntersectionObserver((entries) => {
@@ -73,8 +44,34 @@ const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 /* ================================================================
-   CONTACT FORM — Formspree (AJAX + fallback)
-   No mailto:, progressive enhancement, success animation
+   HERO IMAGE — Full-screen fade + parallax scroll
+================================================================ */
+const heroEl = document.querySelector('.hero');
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function updateHeroEffects() {
+  if (!heroEl || prefersReduced) return;
+
+  const rect = heroEl.getBoundingClientRect();
+  const viewportTop = Math.max(0, -rect.top);
+  const heroHeight = Math.max(1, rect.height);
+
+  const progress = Math.min(1, viewportTop / (heroHeight * 0.7));
+  const opacity = 1 - progress;
+  const shift = Math.round(viewportTop * 0.2) + 'px';
+
+  heroEl.style.setProperty('--hero-opacity', opacity.toString());
+  heroEl.style.setProperty('--hero-shift', '-' + shift);
+}
+
+window.addEventListener('scroll', () => {
+  handleScroll();
+  updateHeroEffects();
+}, { passive: true });
+updateHeroEffects();
+
+/* ================================================================
+   CONTACT FORM — Formspree AJAX + fallback
 ================================================================ */
 (function wireForm() {
   const form = document.querySelector('form.form[data-ajax]');
@@ -90,7 +87,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
   const successEl = form.querySelector('.form-success');
   const failureEl = form.querySelector('.form-failure');
 
-  form.removeAttribute('onsubmit'); // remove any inline handler
+  form.removeAttribute('onsubmit');
 
   const setErr = (id, msg) => {
     const field = document.getElementById(id);
@@ -98,7 +95,6 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
     if (small) small.textContent = msg;
   };
 
-  // Fallback to normal POST if AJAX blocked
   function fallbackPost() {
     console.warn('[house-sol] Fallback: normal POST to Formspree');
     form.removeEventListener('submit', onSubmit);
@@ -113,7 +109,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
     const hp = (form.querySelector('input[name="company"]')?.value || '').trim();
     if (hp) return;
 
-    // Reset states
+    // Reset messages
     successEl.hidden = true;
     failureEl.hidden = true;
     form.querySelectorAll('.error').forEach(s => (s.textContent = ''));
@@ -133,7 +129,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
     if (!consent) { alert('Please agree to the privacy policy.'); valid = false; }
     if (!valid) return;
 
-    // Button state → Sending…
+    // Button: Sending…
     const originalLabel = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'Sending…';
@@ -143,10 +139,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           name, email, budget, message,
           source: 'housesol.co — GitHub Pages'
@@ -160,7 +153,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
         successEl.hidden = false;
         form.reset();
 
-        // 🎉 Show "Sent ✓" for 2 seconds, then restore
+        // ✅ Sent ✓ animation
         btn.textContent = 'Sent ✓';
         btn.classList.add('btn--ok');
         setTimeout(() => {
@@ -168,7 +161,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
           btn.classList.remove('btn--ok');
           btn.disabled = false;
         }, 2000);
-        return; // skip finally
+        return;
       } else {
         try {
           const data = await res.json();
@@ -184,10 +177,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
       failureEl.hidden = false;
       btn.textContent = 'Try again';
     } finally {
-      // Only reset if we didn’t succeed
-      if (btn.textContent !== 'Sent ✓') {
-        btn.disabled = false;
-      }
+      if (btn.textContent !== 'Sent ✓') btn.disabled = false;
     }
   }
 
