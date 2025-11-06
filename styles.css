@@ -206,56 +206,44 @@ input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage)
 [data-elevate]{transition:box-shadow .2s}
 .is-scrolled [data-elevate]{box-shadow:0 10px 30px rgba(0,0,0,.06)}
 
-/* ===========================================================
-   HERO FULLSCREEN IMAGE — BLEEDS UNDER NEXT SECTION
-   =========================================================== */
-.hero {
+/* ===== Fixed hero image that fades while next section scrolls over it ===== */
+.hero{
   position: relative;
-  height: 100svh;
+  height: 100svh;            /* full screen */
   min-height: 520px;
-  overflow: visible;            /* allow image to bleed below */
-  --hero-opacity: 1;
-  --hero-shift: 0px;
-  --bleed: clamp(10vh, 15vh, 20vh);
+  overflow: visible;          /* allow overlap */
   isolation: isolate;
+  --hero-opacity: 1;          /* JS controls this */
 }
 
-/* full-bleed image */
-.hero-img {
-  position: absolute;
+/* Pin the image to the viewport (doesn't scroll) */
+.hero-img{
+  position: fixed;
   top: 0;
   left: 50%;
   width: 100vw;
-  height: calc(100% + var(--bleed));   /* extend below hero */
+  height: 100svh;
   object-fit: cover;
-  transform: translate3d(-50%, var(--hero-shift), 0);
+  transform: translateX(-50%);
   opacity: var(--hero-opacity);
-  will-change: transform, opacity;
-  z-index: -2;
+  will-change: opacity;
+  z-index: -2;                /* sits behind page content */
 }
 
-/* darken image for text legibility */
-.hero::before {
-  content: "";
-  position: absolute;
+/* Fixed overlay for legibility that fades with image */
+.hero::before{
+  content:"";
+  position: fixed;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.6));
+  background: linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.6));
   opacity: calc(var(--hero-opacity) * 0.9);
   z-index: -1;
 }
 
-/* next section overlaps hero image softly */
+/* Ensure the next section covers the fixed image as it scrolls up */
 .hero + .section,
-.hero + .section.alt {
+.hero + .section.alt{
   position: relative;
-  z-index: 1;
-  margin-top: calc(-1 * var(--bleed));             /* pull section up over hero image */
-  background: var(--paper, #faf8f3);               /* ensure background covers image */
-  border-top: 1px solid rgba(0,0,0,0.05);          /* optional subtle divider */
-}
-
-/* ensure content sits above image */
-.hero .hero-inner {
-  position: relative;
-  z-index: 2;
+  z-index: 0;
+  background: var(--paper, #FAF8F3);
 }
