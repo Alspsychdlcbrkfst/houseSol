@@ -206,69 +206,56 @@ input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage)
 [data-elevate]{transition:box-shadow .2s}
 .is-scrolled [data-elevate]{box-shadow:0 10px 30px rgba(0,0,0,.06)}
 
-/* ========== FULLSCREEN HERO W/ SCROLL FADE ========== */
-.hero{
+/* ===========================================================
+   HERO FULLSCREEN IMAGE — BLEEDS UNDER NEXT SECTION
+   =========================================================== */
+.hero {
   position: relative;
-  height: 100svh;            /* full screen, safe for mobile UI */
+  height: 100svh;
   min-height: 520px;
-  overflow: clip;            /* keeps edges crisp */
-  --hero-opacity: 1;         /* controlled by JS */
-  --hero-shift: 0px;         /* controlled by JS */
+  overflow: visible;            /* allow image to bleed below */
+  --hero-opacity: 1;
+  --hero-shift: 0px;
+  --bleed: clamp(10vh, 15vh, 20vh);
+  isolation: isolate;
 }
 
-.hero-img{
+/* full-bleed image */
+.hero-img {
   position: absolute;
-  inset: 0;
+  top: 0;
   left: 50%;
   width: 100vw;
-  height: 100%;
+  height: calc(100% + var(--bleed));   /* extend below hero */
   object-fit: cover;
   transform: translate3d(-50%, var(--hero-shift), 0);
   opacity: var(--hero-opacity);
   will-change: transform, opacity;
-  z-index: -1;               /* behind content */
+  z-index: -2;
 }
 
-/* Optional: darken lower area for text legibility */
-.hero::before{
-  content:"";
-  position:absolute; inset:0;
-  background: linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.55));
+/* darken image for text legibility */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.6));
   opacity: calc(var(--hero-opacity) * 0.9);
-  z-index:-1;
+  z-index: -1;
 }
 
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .hero-img{ transform: translate3d(-50%, 0, 0); opacity: 1; }
-  .hero::before{ opacity: .9; }
-}
-
-/* === Seamless hero → next section blend === */
-.hero{
+/* next section overlaps hero image softly */
+.hero + .section,
+.hero + .section.alt {
   position: relative;
-  isolation: isolate;           /* keeps z-index layers tidy */
-  --bleed: clamp(8vh, 12vh, 16vh);   /* how far the fade overlaps the next section */
+  z-index: 1;
+  margin-top: calc(-1 * var(--bleed));             /* pull section up over hero image */
+  background: var(--paper, #faf8f3);               /* ensure background covers image */
+  border-top: 1px solid rgba(0,0,0,0.05);          /* optional subtle divider */
 }
 
-/* Image already fades via --hero-opacity; this adds a bottom fade into the page bg */
-.hero::after{
-  content:"";
-  position:absolute;
-  left:0; right:0;
-  bottom: calc(-1 * var(--bleed));   /* extend past the hero bottom */
-  height: calc(var(--bleed) + 1px);
-  background: linear-gradient(to bottom, rgba(250,248,243,0) 0%, var(--paper) 90%);
-  pointer-events:none;
-  z-index: 0;                        /* above image, below content */
-}
-
-/* Ensure hero content sits above the fade & image */
-.hero .hero-inner{ position: relative; z-index: 2; }
-.hero-img{ z-index: -1; }
-
-/* Pull the next section up under the hero fade, then add back its padding */
-.hero + .section{
-  margin-top: calc(-1 * var(--bleed));
-  padding-top: calc(var(--bleed) + clamp(3.5rem, 5vw, 6rem));
+/* ensure content sits above image */
+.hero .hero-inner {
+  position: relative;
+  z-index: 2;
 }
