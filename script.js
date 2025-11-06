@@ -1,11 +1,10 @@
 /* ================================================================
    house sol — Main JS
-   Features:
    - Mobile nav toggle
    - Header elevation on scroll
    - Reveal animations
-   - Full-screen hero fade + parallax
-   - Contact form via Formspree (AJAX + fallback)
+   - Hero fade (fixed on desktop, absolute on mobile)
+   - Contact form via Formspree (AJAX + fallback) with Sent ✓ state
 ================================================================ */
 
 // ---------- Navigation ----------
@@ -33,9 +32,7 @@ handleScroll();
 const revealEls = Array.from(document.querySelectorAll('.section, .card, .case, .quote, .about-card'));
 revealEls.forEach(el => el.setAttribute('data-reveal', ''));
 const io = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.classList.add('revealed');
-  });
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
 }, { threshold: 0.15 });
 revealEls.forEach(el => io.observe(el));
 
@@ -43,29 +40,31 @@ revealEls.forEach(el => io.observe(el));
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-// ---- Hero fade on scroll (no parallax / image stays fixed) ----
+/* ================================================================
+   HERO — Fade on scroll (image pinned on desktop, no parallax)
+================================================================ */
 const heroEl = document.querySelector('.hero');
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function updateHeroEffects() {
   if (!heroEl || prefersReduced) return;
+
+  // Use element height; works for both fixed (desktop) and absolute (mobile)
   const heroHeight = Math.max(1, heroEl.offsetHeight);
   const y = Math.min(heroHeight, window.scrollY || window.pageYOffset);
 
-  // Fade out over ~90% of hero height for a smooth handoff
+  // Fade out over ~90% of hero height for smooth handoff
   const progress = Math.min(1, y / (heroHeight * 0.9));
   const opacity = 1 - progress;
 
   heroEl.style.setProperty('--hero-opacity', opacity.toFixed(3));
 }
 
-// If you already have a scroll handler, just call updateHeroEffects() inside it.
-// Otherwise:
-window.addEventListener('scroll', updateHeroEffects, { passive: true });
+window.addEventListener('scroll', () => { handleScroll(); updateHeroEffects(); }, { passive: true });
 updateHeroEffects();
 
 /* ================================================================
-   CONTACT FORM — Formspree AJAX + fallback
+   CONTACT FORM — Formspree AJAX + fallback, with Sent ✓ state
 ================================================================ */
 (function wireForm() {
   const form = document.querySelector('form.form[data-ajax]');
@@ -81,7 +80,7 @@ updateHeroEffects();
   const successEl = form.querySelector('.form-success');
   const failureEl = form.querySelector('.form-failure');
 
-  form.removeAttribute('onsubmit');
+  form.removeAttribute('onsubmit'); // remove any legacy inline handler
 
   const setErr = (id, msg) => {
     const field = document.getElementById(id);
@@ -123,7 +122,7 @@ updateHeroEffects();
     if (!consent) { alert('Please agree to the privacy policy.'); valid = false; }
     if (!valid) return;
 
-    // Button: Sending…
+    // Button → Sending…
     const originalLabel = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'Sending…';
@@ -134,10 +133,7 @@ updateHeroEffects();
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          name, email, budget, message,
-          source: 'housesol.co — GitHub Pages'
-        }),
+        body: JSON.stringify({ name, email, budget, message, source: 'housesol.co — GitHub Pages' }),
         mode: 'cors',
         redirect: 'follow',
         credentials: 'omit'
@@ -147,7 +143,7 @@ updateHeroEffects();
         successEl.hidden = false;
         form.reset();
 
-        // ✅ Sent ✓ animation
+        // Sent ✓ animation
         btn.textContent = 'Sent ✓';
         btn.classList.add('btn--ok');
         setTimeout(() => {
@@ -155,7 +151,7 @@ updateHeroEffects();
           btn.classList.remove('btn--ok');
           btn.disabled = false;
         }, 2000);
-        return;
+        return; // skip finally
       } else {
         try {
           const data = await res.json();
