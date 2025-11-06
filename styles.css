@@ -243,3 +243,32 @@ input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage)
   .hero-img{ transform: translate3d(-50%, 0, 0); opacity: 1; }
   .hero::before{ opacity: .9; }
 }
+
+/* === Seamless hero → next section blend === */
+.hero{
+  position: relative;
+  isolation: isolate;           /* keeps z-index layers tidy */
+  --bleed: clamp(8vh, 12vh, 16vh);   /* how far the fade overlaps the next section */
+}
+
+/* Image already fades via --hero-opacity; this adds a bottom fade into the page bg */
+.hero::after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  bottom: calc(-1 * var(--bleed));   /* extend past the hero bottom */
+  height: calc(var(--bleed) + 1px);
+  background: linear-gradient(to bottom, rgba(250,248,243,0) 0%, var(--paper) 90%);
+  pointer-events:none;
+  z-index: 0;                        /* above image, below content */
+}
+
+/* Ensure hero content sits above the fade & image */
+.hero .hero-inner{ position: relative; z-index: 2; }
+.hero-img{ z-index: -1; }
+
+/* Pull the next section up under the hero fade, then add back its padding */
+.hero + .section{
+  margin-top: calc(-1 * var(--bleed));
+  padding-top: calc(var(--bleed) + clamp(3.5rem, 5vw, 6rem));
+}
