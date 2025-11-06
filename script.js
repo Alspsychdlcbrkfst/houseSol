@@ -25,16 +25,6 @@ const onScroll = () => {
 window.addEventListener('scroll', onScroll);
 onScroll();
 
-// ---------- Section reveal ----------
-const revealEls = Array.from(document.querySelectorAll('.section, .card, .case, .quote, .about-card'));
-revealEls.forEach(el => el.setAttribute('data-reveal', ''));
-const io = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.classList.add('revealed');
-  });
-}, { threshold: 0.15 });
-revealEls.forEach(el => io.observe(el));
-
 // ---- Hero fade + subtle parallax on scroll ----
 const heroEl = document.querySelector('.hero');
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -67,6 +57,16 @@ window.removeEventListener('scroll', onScroll);
 window.addEventListener('scroll', onScrollCombined, { passive: true });
 // Initial paint
 updateHeroEffects();
+
+// ---------- Section reveal ----------
+const revealEls = Array.from(document.querySelectorAll('.section, .card, .case, .quote, .about-card'));
+revealEls.forEach(el => el.setAttribute('data-reveal', ''));
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('revealed');
+  });
+}, { threshold: 0.15 });
+revealEls.forEach(el => io.observe(el));
 
 // ---------- Footer year ----------
 const yearEl = document.getElementById('year');
