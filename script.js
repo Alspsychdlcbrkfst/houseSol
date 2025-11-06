@@ -35,6 +35,39 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 revealEls.forEach(el => io.observe(el));
 
+// ---- Hero fade + subtle parallax on scroll ----
+const heroEl = document.querySelector('.hero');
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function updateHeroEffects() {
+  if (!heroEl || prefersReduced) return;
+
+  const rect = heroEl.getBoundingClientRect();
+  const viewportTop = Math.max(0, -rect.top);          // how much we've scrolled into the hero
+  const heroHeight = Math.max(1, rect.height);         // avoid /0
+
+  // Fade out over ~70% of hero height
+  const progress = Math.min(1, viewportTop / (heroHeight * 0.7));
+  const opacity = 1 - progress;
+
+  // Gentle parallax upward (20% of scroll)
+  const shift = Math.round(viewportTop * 0.2) + 'px';
+
+  heroEl.style.setProperty('--hero-opacity', opacity.toString());
+  heroEl.style.setProperty('--hero-shift', '-' + shift);
+}
+
+// Hook into your existing scroll handler
+const _prevOnScroll = onScroll;
+const onScrollCombined = () => {
+  _prevOnScroll && _prevOnScroll();
+  updateHeroEffects();
+};
+window.removeEventListener('scroll', onScroll);
+window.addEventListener('scroll', onScrollCombined, { passive: true });
+// Initial paint
+updateHeroEffects();
+
 // ---------- Footer year ----------
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
