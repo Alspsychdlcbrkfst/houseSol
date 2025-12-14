@@ -79,24 +79,26 @@ p{margin:0.5rem 0 0}
 /* Success state */
 .btn--ok{ background-color:#6B705C; border-color:#6B705C; color:#fff; transition:background-color .3s ease }
 
-/* ===================== HERO ===================== */
+/* ===================== HERO (MP4 or IMG) ===================== */
 .hero{
   position: relative;
-  height: 100dvh;           /* mobile/tablet dynamic viewport */
+  height: 100dvh;           /* dynamic viewport for mobile chrome */
   min-height: 520px;
-  overflow: hidden;         /* clean edges by default */
+  overflow: hidden;         /* clean edges on mobile/tablet */
   isolation: isolate;
   --hero-opacity: 1;
 }
+
 .hero .grain{
   position:absolute; inset:0; z-index:0;
   background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='.0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");
-  mix-blend-mode:multiply; pointer-events:none;
+  mix-blend-mode:multiply;
+  pointer-events:none;
 }
 
-/* Default (mobile/tablet): absolute image, never blocks */
-.hero-img{
-  position: absolute;
+/* Unified hero media (use for <video> or <img>) */
+.hero-media{
+  position: absolute;       /* default: mobile/tablet */
   inset: 0;
   left: 50%;
   width: 100%;
@@ -104,12 +106,14 @@ p{margin:0.5rem 0 0}
   object-fit: cover;
   transform: translateX(-50%);
   opacity: var(--hero-opacity);
-  pointer-events: none;
+  pointer-events: none;     /* never block taps/inputs */
   z-index: 0;
 }
+
+/* Overlay that fades with media (for text legibility) */
 .hero::before{
   content:"";
-  position: absolute;
+  position: absolute;       /* default: mobile/tablet */
   inset: 0;
   background: linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.6));
   opacity: calc(var(--hero-opacity) * 0.9);
@@ -118,7 +122,7 @@ p{margin:0.5rem 0 0}
 }
 
 /* ✨ Center hero text perfectly */
-.hero .hero-inner {
+.hero .hero-inner{
   position: relative;
   z-index: 2;
   min-height: 100%;
@@ -129,32 +133,36 @@ p{margin:0.5rem 0 0}
   text-align: center;
   padding: 0 1.5rem;
 }
-.hero h1 {
+.hero h1{
   font-family: var(--serif);
   font-size: clamp(2rem, 5vw, 3rem);
   line-height: 1.2;
   margin: .5rem 0 1rem;
 }
-.hero .eyebrow { margin-bottom: 1rem; }
-.hero .lead { max-width: 600px; margin: 0 auto 1.8rem; }
-.hero .hero-cta { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; }
-.hero .trust {
+.hero .eyebrow{ margin-bottom: 1rem; }
+.hero .lead{ max-width: 600px; margin: 0 auto 1.8rem; }
+.hero .hero-cta{ display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; }
+.hero .trust{
   display:flex; gap:1.5rem; list-style:none; margin:2rem 0 0; padding:0;
   font-weight:500; color:var(--moss); font-size:.95rem; justify-content:center;
 }
 
-/* Ensure next section stacks normally above background */
+/* Next section stacks normally above hero background */
 .hero + .section,
 .hero + .section.alt{
   position: relative;
   background: var(--paper);
 }
 
-/* Desktop only (mouse + fine pointer): enable fixed/pinned hero */
+/* Desktop only (mouse + fine pointer): pinned hero background */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine){
-  .hero{ height: 100svh; overflow: visible; }
-  .hero-img{
-    position: fixed;
+  .hero{
+    height: 100svh;
+    overflow: visible; /* allow pinned look safely */
+  }
+
+  .hero-media{
+    position: fixed;   /* pin media */
     top: 0;
     left: 50%;
     width: 100vw;
@@ -162,14 +170,16 @@ p{margin:0.5rem 0 0}
     transform: translateX(-50%);
     z-index: -2;
   }
+
   .hero::before{
-    position: fixed;
+    position: fixed;   /* pin overlay */
     inset: 0;
     z-index: -1;
   }
+
   .hero + .section,
   .hero + .section.alt{
-    z-index: 1;             /* sits above fixed layers */
+    z-index: 1;        /* above fixed layers */
     background: var(--paper);
   }
 }
@@ -177,7 +187,8 @@ p{margin:0.5rem 0 0}
 /* Cards */
 .cards{ display:grid; grid-template-columns:repeat(12, 1fr); gap:1rem; margin-top:1rem }
 .card{
-  grid-column:span 4; background:var(--white); border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent);
+  grid-column:span 4; background:var(--white);
+  border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent);
   padding:1.25rem; border-radius:var(--radius); box-shadow:var(--shadow-soft)
 }
 .card h3{margin:.3rem 0 .4rem; font-family:var(--serif)}
@@ -189,8 +200,11 @@ p{margin:0.5rem 0 0}
 /* Case studies */
 .case-grid{ display:grid; grid-template-columns:repeat(12, 1fr); gap:1rem }
 .case{
-  grid-column:span 4; display:flex; flex-direction:column; text-decoration:none; color:inherit; background:var(--white);
-  border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent); border-radius:var(--radius); overflow:hidden; transition:transform .25s ease, box-shadow .25s ease
+  grid-column:span 4; display:flex; flex-direction:column; text-decoration:none; color:inherit;
+  background:var(--white);
+  border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent);
+  border-radius:var(--radius); overflow:hidden;
+  transition:transform .25s ease, box-shadow .25s ease
 }
 .case:hover{transform:translateY(-2px); box-shadow:var(--shadow)}
 .case-media{
@@ -202,7 +216,8 @@ p{margin:0.5rem 0 0}
     var(--sand);
 }
 .case .tag{
-  position:absolute; left:.8rem; top:.8rem; padding:.35rem .6rem; border-radius:999px; font-size:.75rem; background:color-mix(in oklab, var(--charcoal) 15%, transparent); color:var(--ink)
+  position:absolute; left:.8rem; top:.8rem; padding:.35rem .6rem; border-radius:999px; font-size:.75rem;
+  background:color-mix(in oklab, var(--charcoal) 15%, transparent); color:var(--ink)
 }
 .case-body{padding:1rem 1rem 1.2rem}
 .case-body h3{margin:.2rem 0 .2rem; font-family:var(--serif)}
@@ -213,9 +228,7 @@ p{margin:0.5rem 0 0}
 .quote blockquote{
   margin:0; padding:2.5rem; border-radius:var(--radius);
   color:var(--ink);
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,0)),
-    var(--sand);
+  background: linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,0)), var(--sand);
   border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent);
   box-shadow:var(--shadow-soft)
 }
@@ -226,7 +239,11 @@ p{margin:0.5rem 0 0}
 .about{display:grid; grid-template-columns:1.6fr .9fr; gap:1.5rem; align-items:start}
 .pill-list{display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0 0; padding:0; list-style:none}
 .pill-list li{padding:.45rem .7rem; border-radius:999px; background:color-mix(in oklab, var(--charcoal) 10%, transparent)}
-.about-card{background:var(--white); border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent); border-radius:var(--radius); padding:1rem; box-shadow:var(--shadow-soft)}
+.about-card{
+  background:var(--white);
+  border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent);
+  border-radius:var(--radius); padding:1rem; box-shadow:var(--shadow-soft)
+}
 .kv{display:grid; gap:.6rem; margin:0}
 .kv div{display:grid; grid-template-columns:110px 1fr; gap:.8rem}
 .kv dt{color:var(--moss)}
@@ -234,13 +251,25 @@ p{margin:0.5rem 0 0}
 
 /* Contact */
 .contact{display:grid; grid-template-columns:1fr 1.1fr; gap:1.5rem; align-items:start}
-.form{background:var(--white); border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent); border-radius:var(--radius); padding:1rem; box-shadow:var(--shadow-soft); position:relative; z-index:5}
+.form{
+  background:var(--white);
+  border:1px solid color-mix(in oklab, var(--charcoal) 12%, transparent);
+  border-radius:var(--radius);
+  padding:1rem; box-shadow:var(--shadow-soft);
+  position:relative; z-index:5;
+}
 .field{display:grid; gap:.35rem; margin-bottom:1rem}
 .field.checkbox{grid-template-columns:auto 1fr; align-items:center; gap:.7rem; margin-top:.4rem}
 label{font-weight:500}
 input, select, textarea{
-  width:100%; border:1px solid color-mix(in oklab, var(--charcoal) 18%, transparent);
-  background:var(--paper); border-radius:10px; padding:.8rem .9rem; font:inherit; color:inherit; transition:border-color .15s, background .15s
+  width:100%;
+  border:1px solid color-mix(in oklab, var(--charcoal) 18%, transparent);
+  background:var(--paper);
+  border-radius:10px;
+  padding:.8rem .9rem;
+  font:inherit;
+  color:inherit;
+  transition:border-color .15s, background .15s
 }
 input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage); background:var(--white)}
 .error{color:#9b2c2c; min-height:1.1em}
@@ -248,7 +277,11 @@ input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage)
 @media (max-width: 900px){ .contact{grid-template-columns:1fr} }
 
 /* Footer */
-.site-footer{border-top:1px solid color-mix(in oklab, var(--charcoal) 10%, transparent); background:var(--paper); padding:2rem 0}
+.site-footer{
+  border-top:1px solid color-mix(in oklab, var(--charcoal) 10%, transparent);
+  background:var(--paper);
+  padding:2rem 0
+}
 .foot{display:grid; grid-template-columns:1fr auto; gap:1rem; align-items:center}
 .foot-brand .foot-logo{font-family:var(--serif); font-weight:700}
 .foot-nav{display:flex; gap:1rem; list-style:none; padding:0; margin:0}
