@@ -323,3 +323,30 @@ input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage)
 /* Elevation */
 [data-elevate]{transition:box-shadow .2s}
 .is-scrolled [data-elevate]{box-shadow:0 10px 30px rgba(0,0,0,.06)}
+
+/* ===== HERO BUTTONS: TRANSPARENT UNTIL HOVER ===== */
+
+.hero .btn{
+  background: transparent;
+  color: #FFFFFF;
+  border-color: rgba(255,255,255,.55);
+  box-shadow: none;
+}
+
+.hero .btn:hover{
+  background: rgba(255,255,255,.12);
+  border-color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+/* Ghost button stays lighter */
+.hero .btn--ghost{
+  border-color: rgba(255,255,255,.35);
+  color: rgba(255,255,255,.85);
+}
+
+.hero .btn--ghost:hover{
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.9);
+  color: #FFFFFF;
+}
